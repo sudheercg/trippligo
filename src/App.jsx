@@ -73,20 +73,35 @@ export default function App() {
         </div>
       </section>
 
-      {/* Vision */}
-      <section id="vision" className="px-8 py-24 max-w-4xl mx-auto text-center">
-        <h2 className="text-4xl font-bold mb-6">Our Vision</h2>
-        <p className="text-xl text-gray-600 leading-relaxed">
-          Trippligo aims to become the intelligence layer for travel —
-          helping individuals and businesses make confident decisions
-          before they begin their journey.
-        </p>
-      </section>
+   {/* Vision */}
+<section id="vision" className="px-8 py-24 max-w-4xl mx-auto text-center">
+  <h2 className="text-4xl font-bold mb-6">Our Vision</h2>
+
+  <p className="text-xl text-gray-600 leading-relaxed mb-12">
+    Trippligo aims to become the intelligence layer for travel —
+    helping individuals and businesses make confident decisions
+    before they begin their journey.
+  </p>
+
+  <div className="mt-8">
+    <h3 className="text-2xl font-semibold mb-4">
+      AI-Assisted Travel Planner
+    </h3>
+    <p className="text-lg text-gray-600 leading-relaxed">
+      A simple planner that turns your preferences — destination, days,
+      budget, and interests — into practical travel suggestions.
+      No clutter, no bookings forced. Just ideas you can use or ignore.
+    </p>
+  </div>
+</section>
 
       {/* Footer */}
       <footer className="border-t px-8 py-10 text-center text-gray-500">
         © {new Date().getFullYear()} Trippligo. All rights reserved.
       </footer>
+
+
+      
 
     </div>
   )
