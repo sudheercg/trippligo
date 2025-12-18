@@ -102,9 +102,7 @@ export default function App() {
             {/* Footer */}
             <footer className="border-t px-8 py-10 text-center text-gray-500">
               © {new Date().getFullYear()} Trippligo. All rights reserved.
-              <div className="text-xs mt-2 text-gray-400">
-                Build: auto-deploy-test-2
-              </div>
+              
             </footer>
 
           </div>
