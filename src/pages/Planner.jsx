@@ -1,170 +1,138 @@
-import { useState } from "react";
-import { generatePlan } from "../engine/plannerEngine";
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { getTravelPlan } from "../services/aiService"
 
 export default function Planner() {
-  const [form, setForm] = useState({
-    fromCity: "Hyderabad",
-    days: 3,
-    budget: 10000,
-    travelers: "couple",
-    interests: []
-  });
+  const [prompt, setPrompt] = useState("")
+  const [plan, setPlan] = useState(null)
+  const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const [plan, setPlan] = useState(null);
+  const handleSubmit = async () => {
+    if (!prompt.trim()) {
+      setMessage("Please describe your travel idea to get meaningful suggestions.")
+      setPlan(null)
+      return
+    }
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  }
+    setLoading(true)
+    setMessage("")
+    setPlan(null)
 
-  function toggleInterest(interest) {
-    setForm(prev => ({
-      ...prev,
-      interests: prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
-    }));
-  }
+    try {
+      const result = await getTravelPlan(prompt)
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    setPlan(generatePlan(form));
+      if (result?.type !== "success") {
+        setMessage(result?.message || "Unable to generate plan.")
+      } else {
+        setPlan(result)
+      }
+    } catch {
+      setMessage("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 px-6 py-20">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-6 py-16">
+      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8">
+
+        {/* Back Navigation */}
+        <Link
+          to="/"
+          className="inline-block mb-6 text-blue-600 hover:text-blue-700 font-medium"
+        >
+          ← Back to Home
+        </Link>
 
         {/* Header */}
-        <div className="text-center mb-14">
-          <h1 className="text-4xl font-extrabold mb-4">
-            AI-Assisted Travel Planner
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Share your preferences and get realistic trip ideas —
-            no bookings, no pressure, just clarity.
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          AI Travel Planner
+        </h1>
+        <p className="text-gray-600 mb-8">
+          Tell us what you’re thinking. We’ll shape it into a travel plan.
+        </p>
 
-        {/* Planner Card */}
-        <div className="bg-white rounded-3xl shadow-xl p-10 mb-16">
-          <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Input */}
+        <textarea
+          rows="5"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="3 days trip from Hyderabad, couple, budget 10000, beaches and food"
+          className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Starting city
-              </label>
-              <input
-                name="fromCity"
-                value={form.fromCity}
-                onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl text-lg font-medium hover:bg-blue-700 transition disabled:opacity-60"
+        >
+          {loading ? "Analyzing your request..." : "Generate Travel Plan"}
+        </button>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Days
-                </label>
-                <input
-                  type="number"
-                  name="days"
-                  value={form.days}
-                  onChange={handleChange}
-                  className="w-full border rounded-xl px-4 py-3"
-                />
-              </div>
+        {/* Error / Info Message */}
+        {message && (
+          <div className="mt-6 bg-red-50 text-red-600 p-4 rounded-xl">
+            {message}
+          </div>
+        )}
 
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Budget (₹)
-                </label>
-                <input
-                  type="number"
-                  name="budget"
-                  value={form.budget}
-                  onChange={handleChange}
-                  className="w-full border rounded-xl px-4 py-3"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Travelers
-                </label>
-                <select
-                  name="travelers"
-                  value={form.travelers}
-                  onChange={handleChange}
-                  className="w-full border rounded-xl px-4 py-3"
-                >
-                  <option value="solo">Solo</option>
-                  <option value="couple">Couple</option>
-                  <option value="family">Family</option>
-                  <option value="friends">Friends</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-3">
-                Interests
-              </label>
-              <div className="flex flex-wrap gap-3">
-                {["beaches", "food", "music", "nature"].map(item => (
-                  <button
-                    type="button"
-                    key={item}
-                    onClick={() => toggleInterest(item)}
-                    className={`px-5 py-2 rounded-full border text-sm capitalize transition ${
-                      form.interests.includes(item)
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 hover:border-gray-400"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-4 rounded-2xl bg-blue-600 text-white text-lg font-semibold hover:bg-blue-700 transition"
-            >
-              Generate Trip Ideas
-            </button>
-          </form>
-        </div>
-
-        {/* Results */}
+        {/* Result */}
         {plan && (
-          <div className="space-y-10">
-            <h2 className="text-3xl font-bold text-center">
-              Suggested Trips
-            </h2>
+          <div className="mt-10 space-y-6">
 
-            {plan.recommendations.map((item, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl shadow p-8"
-              >
-                <h3 className="text-2xl font-semibold mb-4">
-                  {item.destination}
-                </h3>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                  {item.summary.trim()}
-                </p>
-              </div>
-            ))}
+            <Section title="🧭 Trip Overview">
+              {plan.overview || "Overview not available."}
+            </Section>
 
-            <p className="text-sm text-gray-500 text-center max-w-3xl mx-auto">
-              {plan.disclaimer}
-            </p>
+            <Section title="📍 Suggested Destinations">
+              {Array.isArray(plan.destinations) ? (
+                <ul className="list-disc pl-6 space-y-1">
+                  {plan.destinations.map((d, i) => (
+                    <li key={i}>{d}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No destination suggestions available.</p>
+              )}
+            </Section>
+
+            <Section title="🗓 Sample Itinerary">
+              {Array.isArray(plan.itinerary) ? (
+                <ul className="space-y-2">
+                  {plan.itinerary.map((day, i) => (
+                    <li key={i}>• {day}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No itinerary details available.</p>
+              )}
+            </Section>
+
+            <Section title="💰 Budget Insight">
+              {plan.budget || "Budget estimate not available."}
+            </Section>
+
+            <Section title="⚠️ Practical Tips">
+              {plan.tips || "No additional tips available."}
+            </Section>
+
           </div>
         )}
       </div>
     </div>
-  );
+  )
+}
+
+/* Reusable Section Card */
+function Section({ title, children }) {
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
+      <h3 className="text-xl font-semibold mb-3">{title}</h3>
+      <div className="text-gray-700 leading-relaxed">
+        {children}
+      </div>
+    </div>
+  )
 }

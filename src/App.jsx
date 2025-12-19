@@ -46,9 +46,43 @@ export default function App() {
               </div>
 
               {/* Visual placeholder */}
-              <div className="flex justify-center">
-                <div className="w-96 h-96 rounded-3xl bg-gradient-to-br from-blue-100 to-blue-300 shadow-xl" />
-              </div>
+      <div className="w-96 h-96 rounded-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 shadow-2xl p-8 flex flex-col justify-between text-white">
+  
+  {/* Top */}
+  <div>
+    <span className="inline-block mb-4 px-4 py-1 rounded-full bg-white/20 text-sm tracking-wide">
+      Intelligent Travel Preview
+    </span>
+
+    <h3 className="text-3xl font-extrabold leading-tight mb-4">
+      What if planning<br />felt effortless?
+    </h3>
+
+    <p className="text-white/90 text-lg">
+      Describe your trip in one minute.
+      <br />
+      Get a thoughtful plan in seconds.
+    </p>
+  </div>
+
+  {/* Middle */}
+  <div className="mt-6 space-y-2 text-white/90 text-base">
+    <div>📍 Destination ideas</div>
+    <div>🗓️ Day-wise flow</div>
+    <div>💰 Budget-aware suggestions</div>
+    <div>🍴 Food & experiences</div>
+  </div>
+
+  {/* Bottom */}
+  <div className="border-t border-white/30 pt-4">
+    <p className="text-sm text-white/80">
+      No bookings. No ads.
+    </p>
+    <p className="font-semibold text-lg">
+      Just ideas worth considering.
+    </p>
+  </div>
+</div>
             </section>
 
             {/* Features */}
