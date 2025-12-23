@@ -1,138 +1,191 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
 import { getTravelPlan } from "../services/aiService"
+import { Link } from "react-router-dom"
 
 export default function Planner() {
-  const [prompt, setPrompt] = useState("")
-  const [plan, setPlan] = useState(null)
-  const [message, setMessage] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({
+    fromCity: "",
+    days: "",
+    budget: "",
+    interests: "",
+  })
 
-  const handleSubmit = async () => {
-    if (!prompt.trim()) {
-      setMessage("Please describe your travel idea to get meaningful suggestions.")
-      setPlan(null)
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState("")
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError("")
+    setResult(null)
+
+    if (!form.fromCity || !form.days || !form.budget) {
+      setError("Please fill all required fields.")
       return
     }
 
     setLoading(true)
-    setMessage("")
-    setPlan(null)
 
     try {
-      const result = await getTravelPlan(prompt)
-
-      if (result?.type !== "success") {
-        setMessage(result?.message || "Unable to generate plan.")
-      } else {
-        setPlan(result)
-      }
+      const response = await getTravelPlan({
+        fromCity: form.fromCity,
+        days: Number(form.days),
+        budget: Number(form.budget),
+        interests: form.interests
+          ? form.interests.split(",").map(i => i.trim())
+          : [],
+      })
+      setResult(response)
     } catch {
-      setMessage("Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
+      setError("Something went wrong. Please try again.")
     }
+
+    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-16">
-      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8">
-
-        {/* Back Navigation */}
-        <Link
-          to="/"
-          className="inline-block mb-6 text-blue-600 hover:text-blue-700 font-medium"
-        >
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white px-6 py-12">
+      
+      {/* Top Navigation */}
+      <div className="max-w-6xl mx-auto mb-10 flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Trippligo Planner</h1>
+        <Link to="/" className="text-blue-600 font-medium hover:underline">
           ← Back to Home
         </Link>
+      </div>
 
-        {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          AI Travel Planner
-        </h1>
-        <p className="text-gray-600 mb-8">
-          Tell us what you’re thinking. We’ll shape it into a travel plan.
+      {/* Planner Form */}
+      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-lg p-10 mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Plan your next trip
+        </h2>
+
+        <form onSubmit={handleSubmit} className="grid gap-6">
+          <input
+            name="fromCity"
+            placeholder="Starting city (e.g., Hyderabad)"
+            className="border rounded-xl px-4 py-3"
+            onChange={handleChange}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              name="days"
+              type="number"
+              placeholder="Days"
+              className="border rounded-xl px-4 py-3"
+              onChange={handleChange}
+            />
+            <input
+              name="budget"
+              type="number"
+              placeholder="Budget (₹)"
+              className="border rounded-xl px-4 py-3"
+              onChange={handleChange}
+            />
+          </div>
+
+          <input
+            name="interests"
+            placeholder="Interests (Beaches, Food, Nature)"
+            className="border rounded-xl px-4 py-3"
+            onChange={handleChange}
+          />
+
+          {error && <p className="text-red-500">{error}</p>}
+
+          <button
+            type="submit"
+            className="bg-blue-600 text-white py-3 rounded-xl text-lg font-medium hover:bg-blue-700"
+          >
+            Generate Travel Plan
+          </button>
+        </form>
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <p className="text-center text-lg text-gray-600">
+          Generating your plan...
         </p>
+      )}
 
-        {/* Input */}
-        <textarea
-          rows="5"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="3 days trip from Hyderabad, couple, budget 10000, beaches and food"
-          className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
+      {/* Result */}
+      {result && (
+        <div className="max-w-6xl mx-auto space-y-12">
 
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl text-lg font-medium hover:bg-blue-700 transition disabled:opacity-60"
-        >
-          {loading ? "Analyzing your request..." : "Generate Travel Plan"}
-        </button>
-
-        {/* Error / Info Message */}
-        {message && (
-          <div className="mt-6 bg-red-50 text-red-600 p-4 rounded-xl">
-            {message}
+          {/* Summary */}
+          <div className="bg-white rounded-3xl p-8 shadow">
+            <h3 className="text-2xl font-semibold mb-4">Overview</h3>
+            <p className="text-gray-700 text-lg">{result.summary}</p>
           </div>
-        )}
 
-        {/* Result */}
-        {plan && (
-          <div className="mt-10 space-y-6">
-
-            <Section title="🧭 Trip Overview">
-              {plan.overview || "Overview not available."}
-            </Section>
-
-            <Section title="📍 Suggested Destinations">
-              {Array.isArray(plan.destinations) ? (
-                <ul className="list-disc pl-6 space-y-1">
-                  {plan.destinations.map((d, i) => (
-                    <li key={i}>{d}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No destination suggestions available.</p>
-              )}
-            </Section>
-
-            <Section title="🗓 Sample Itinerary">
-              {Array.isArray(plan.itinerary) ? (
-                <ul className="space-y-2">
-                  {plan.itinerary.map((day, i) => (
-                    <li key={i}>• {day}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No itinerary details available.</p>
-              )}
-            </Section>
-
-            <Section title="💰 Budget Insight">
-              {plan.budget || "Budget estimate not available."}
-            </Section>
-
-            <Section title="⚠️ Practical Tips">
-              {plan.tips || "No additional tips available."}
-            </Section>
-
+          {/* Why this trip */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {result.whyThisTrip.map((item, i) => (
+              <div
+                key={i}
+                className="bg-blue-50 rounded-2xl p-6 text-center"
+              >
+                <p className="font-medium text-gray-800">{item}</p>
+              </div>
+            ))}
           </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
-/* Reusable Section Card */
-function Section({ title, children }) {
-  return (
-    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
-      <h3 className="text-xl font-semibold mb-3">{title}</h3>
-      <div className="text-gray-700 leading-relaxed">
-        {children}
-      </div>
+          {/* Itinerary */}
+          <div>
+            <h3 className="text-2xl font-semibold mb-6">Day-wise Itinerary</h3>
+            <div className="grid md:grid-cols-3 gap-6">
+              {result.itinerary.map((day, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl p-6 shadow"
+                >
+                  <h4 className="font-semibold mb-2">{day.day}</h4>
+                  <p className="text-gray-800 mb-1">{day.title}</p>
+                  <p className="text-gray-600 text-sm">{day.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Budget */}
+          <div>
+            <h3 className="text-2xl font-semibold mb-6">Budget Breakdown</h3>
+            <div className="grid md:grid-cols-4 gap-6">
+              {result.budget.map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-2xl p-6 shadow text-center"
+                >
+                  <p className="text-gray-500">{item.label}</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    ₹{item.amount}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tips */}
+          <div className="bg-white rounded-3xl p-8 shadow">
+            <h3 className="text-2xl font-semibold mb-4">Travel Tips</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-2">
+              {result.tips.map((tip, i) => (
+                <li key={i}>{tip}</li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="text-center text-gray-500 text-sm">
+            {result.disclaimer}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

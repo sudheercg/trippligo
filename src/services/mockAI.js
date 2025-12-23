@@ -1,64 +1,103 @@
-export function generateMockPlan(prompt) {
-  const text = prompt.toLowerCase()
+// src/services/mockAI.js
 
-  let destinations = []
-  let itinerary = []
-  let budget = ""
-  let tips = ""
+// Helper data
+const DESTINATIONS = {
+  Beaches: [
+    { name: "Goa", baseCost: 12000 },
+    { name: "Gokarna", baseCost: 8000 },
+    { name: "Varkala", baseCost: 9000 },
+    { name: "Pondicherry", baseCost: 7000 },
+  ],
+  Nature: [
+    { name: "Coorg", baseCost: 9000 },
+    { name: "Wayanad", baseCost: 8500 },
+    { name: "Munnar", baseCost: 9500 },
+  ],
+  Food: [
+    { name: "Hyderabad", baseCost: 6000 },
+    { name: "Lucknow", baseCost: 7000 },
+    { name: "Delhi", baseCost: 8000 },
+  ],
+  Music: [
+    { name: "Chennai", baseCost: 7500 },
+    { name: "Kolkata", baseCost: 8000 },
+  ],
+}
 
-  if (text.includes("beach")) {
-    destinations = [
-      "Goa – Vibrant beaches, nightlife, food",
-      "Gokarna – Peaceful beaches and sunsets"
-    ]
+function pickDestination(interests, budget) {
+  for (const interest of interests) {
+    const options = DESTINATIONS[interest]
+    if (!options) continue
 
-    itinerary = [
-      "Day 1: Travel, beach walk, seafood dinner",
-      "Day 2: Beach hopping, cafes, sunset view",
-      "Day 3: Leisure morning and return"
-    ]
-
-    budget = "₹9,000–₹12,000 per couple using train or bus travel."
-    tips = "Avoid peak weekends. South Goa and Gokarna are calmer."
-  } 
-  else if (text.includes("hill") || text.includes("mountain")) {
-    destinations = [
-      "Coorg – Coffee plantations and waterfalls",
-      "Ooty – Cool climate and scenic views"
-    ]
-
-    itinerary = [
-      "Day 1: Travel and local exploration",
-      "Day 2: Nature walks, viewpoints, relaxed evening",
-      "Day 3: Leisure breakfast and return"
-    ]
-
-    budget = "₹8,000–₹11,000 per couple depending on stay choice."
-    tips = "Pack warm clothing and book stays close to town."
-  } 
-  else {
-    destinations = [
-      "Hampi – History, culture, and landscapes",
-      "Pondicherry – Cafes, heritage streets, beaches"
-    ]
-
-    itinerary = [
-      "Day 1: Travel and local sightseeing",
-      "Day 2: Explore culture, food, and streets",
-      "Day 3: Relaxed morning and return"
-    ]
-
-    budget = "₹7,000–₹10,000 for a comfortable short trip."
-    tips = "Walkable towns save transport cost and time."
+    const affordable = options.find(d => d.baseCost <= budget)
+    if (affordable) return affordable.name
   }
+  return "Nearby destination"
+}
+
+function buildDayPlan(days, destination) {
+  const plan = []
+  for (let i = 1; i <= days; i++) {
+    plan.push({
+      day: `Day ${i}`,
+      title:
+        i === 1
+          ? `Arrival & local exploration in ${destination}`
+          : i === days
+          ? `Relaxation & return`
+          : `Explore hidden spots around ${destination}`,
+      description:
+        i === 1
+          ? "Arrive, check-in, evening walk, local food."
+          : i === days
+          ? "Slow morning, souvenirs, return journey."
+          : "Sightseeing, cafes, cultural spots.",
+    })
+  }
+  return plan
+}
+
+function budgetBreakdown(budget) {
+  return [
+    { label: "Stay", amount: Math.round(budget * 0.4) },
+    { label: "Travel", amount: Math.round(budget * 0.3) },
+    { label: "Food", amount: Math.round(budget * 0.2) },
+    { label: "Local travel & misc", amount: Math.round(budget * 0.1) },
+  ]
+}
+
+export function generateMockPlan(request) {
+  const {
+    fromCity = "your city",
+    days = 3,
+    budget = 10000,
+    interests = [],
+  } = request
+
+  const destination = pickDestination(interests, budget)
 
   return {
-    type: "success",
-    overview:
-      "This plan is designed based on your interests, time, and budget, focusing on comfort and meaningful experiences.",
-    destinations,
-    itinerary,
-    budget,
-    tips
+    summary: `A ${days}-day trip from ${fromCity} to ${destination}, designed to match your budget and interests.`,
+    
+    whyThisTrip: [
+      `Fits comfortably within a ₹${budget} budget`,
+      `Ideal for a ${days}-day break`,
+      interests.length
+        ? `Aligned with your interest in ${interests.join(", ")}`
+        : "Balanced mix of relaxation and exploration",
+    ],
+
+    itinerary: buildDayPlan(days, destination),
+
+    budget: budgetBreakdown(budget),
+
+    tips: [
+      "Book stays slightly outside city centers to save money",
+      "Use local transport where possible",
+      "Avoid peak travel hours for better experiences",
+    ],
+
+    disclaimer:
+      "This is a planning guide, not a booking service. Prices and availability may vary.",
   }
 }
