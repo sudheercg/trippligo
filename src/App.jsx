@@ -1,11 +1,17 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import Planner from './pages/Planner.jsx'; // create this file next
+import DestinationIntelligence from "./pages/DestinationIntelligence.jsx";
 
 export default function App() {
   return (
     <Routes>
       {/* Landing Page */}
+
+      <Route
+  path="/destination-intelligence"
+  element={<DestinationIntelligence />}
+/>
       <Route
         path="/"
         element={
@@ -33,12 +39,17 @@ export default function App() {
                   using real-world data and intelligent analysis.
                 </p>
                 <div className="flex gap-4">
-                  <Link
-                    to="/planner"
-                    className="px-8 py-3 rounded-xl bg-blue-600 text-white text-lg font-medium hover:bg-blue-700"
+               
+
+                <Link
+                  to="/destination-intelligence"
+                   className="px-8 py-3 rounded-xl bg-blue-600 text-white text-lg font-medium hover:bg-blue-700"
                   >
-                    Get Started
-                  </Link>
+                Get Smart Suggestions
+              </Link>
+
+
+
                   <button className="px-8 py-3 rounded-xl border border-gray-300 text-lg hover:border-gray-400">
                     Learn More
                   </button>
